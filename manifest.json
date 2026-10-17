@@ -1,0 +1,17 @@
+{
+  "name": "PokeMMO Dex Tracker & Optimizer",
+  "short_name": "PokeMMO Dex",
+  "description": "Optimiza tus rutas de captura para completar la Pokédex de PokeMMO de las 5 regiones.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#ef4444",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://icons8.com",
+      "type": "image/png",
+      "sizes": "512/512"
+    }
+  ]
+}
