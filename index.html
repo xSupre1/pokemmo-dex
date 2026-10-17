@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokeMMO Dex Optimizer</title>
+    <!-- Tailwind CSS para un diseño hermoso, moderno y responsivo -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        .pokemon-card.captured {
+            opacity: 0.35;
+            filter: grayscale(80%);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen font-sans selection:bg-red-500 selection:text-white">
+
+    <!-- Encabezado / Navbar -->
+    <header class="border-b border-gray-800 bg-gray-900/50 backdrop-blur sticky top-0 z-50 px-4 py-4">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                <h1 class="text-xl font-black tracking-wider uppercase text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-amber-400">
+                    PokeMMO Dex Tracker
+                </h1>
+            </div>
+            <div class="flex gap-4 text-sm font-semibold text-gray-400">
+                <div>Progreso Total: <span id="global-progress" class="text-emerald-400 font-bold">0/0</span></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Panel Izquierdo: Controles, Filtros y la Ruta Óptima Recomendada -->
+        <section class="lg:col-span-1 space-y-6">
+            <!-- Selector de Región -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">📍 Seleccionar Región</h2>
+                <div class="grid grid-cols-2 gap-2" id="region-buttons">
+                    <!-- Botones generados por JS -->
+                </div>
+            </div>
+
+            <!-- Buscador -->
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">🔍 Buscar Pokémon</h2>
+                <input type="text" id="search-bar" placeholder="Escribe el nombre del pokémon..." 
+                       class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-red-500 transition-colors">
+            </div>
+
+            <!-- Módulo Inteligente: Generador de Rutas -->
+            <div class="bg-gradient-to-br from-gray-900 to-gray-950 border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+                <h2 class="text-base font-extrabold uppercase tracking-wider text-amber-400 mb-2 flex items-center gap-2">
+                    🎯 Ruta más Eficiente
+                </h2>
+                <p class="text-xs text-gray-400 mb-4">Calcula automáticamente el mapa donde te faltan más capturas en la región activa.</p>
+                
+                <button id="btn-calc-route" class="w-full bg-gradient-to-r from-red-500 to-amber-500 hover:from-red-600 hover:to-amber-600 text-gray-950 font-black py-3 rounded-xl shadow-lg shadow-red-500/10 transition-transform active:scale-[0.98] uppercase tracking-wider text-sm cursor-pointer">
+                    ⚡ Calcular Mejor Ruta
+                </button>
+
+                <div id="route-result" class="mt-4 p-4 bg-gray-950/60 border border-gray-800 rounded-xl hidden space-y-2">
+                    <!-- Resultado calculado por JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Panel Derecho: Cuadrícula de Pokémon (La Pokédex Activa) -->
+        <section class="lg:col-span-2 space-y-4">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                <h2 class="text-lg font-black text-gray-200 uppercase tracking-wide" id="active-region-title">Cargando...</h2>
+                <span class="text-xs font-medium text-gray-500 bg-gray-900 border border-gray-800 px-3 py-1 rounded-full" id="region-count">0 restantes</span>
+            </div>
+            
+            <!-- Grid de Pokémon -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="pokemon-grid">
+                <!-- Tarjetas cargadas dinámicamente -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- LÓGICA DE LA APP (JAVASCRIPT) Y BASE DE DATOS -->
+    <script>
+        // BASE DE DATOS INICIAL (PokeMMO de ejemplo - Puedes ampliarla después)
+        const pokemonDB = [
+            { id: 1, name: "Bulbasaur", region: "Kanto", locations: ["Ruta 24", "Ruta 25"] },
+            { id: 4, name: "Charmander", region: "Kanto", locations: ["Ruta 3", "Ruta 4"] },
+            { id: 7, name: "Squirtle", region: "Kanto", locations: ["Ruta 12", "Ruta 13", "Islas Espuma"] },
+            { id: 19, name: "Rattata", region: "Kanto", locations: ["Ruta 1", "Ruta 2", "Ruta 22"] },
+            { id: 25, name: "Pikachu", region: "Kanto", locations: ["Bosque Verde", "Central Energía"] },
+            { id: 133, name: "Eevee", region: "Kanto", locations: ["Ruta 17"] },
+            { id: 495, name: "Snivy", region: "Unova", locations: ["Ruta 4", "Ruta 5"] },
+            { id: 498, name: "Tepig", region: "Unova", locations: ["Ruta 4", "Ruta 5", "Desierto"] },
+            { id: 501, name: "Oshawott", region: "Unova", locations: ["Ruta 4", "Pueblo Arcilla"] },
+            { id: 504, name: "Patrat", region: "Unova", locations: ["Ruta 1", "Ruta 2", "Solar de los Sueños"] }
+        ];
+
+        // Regiones que soporta la app
+        const regions = ["Kanto", "Johto", "Hoenn", "Sinnoh", "Unova"];
+        
+        // Estado de la aplicación
+        let currentRegion = "Kanto";
+        let capturedPokemon = JSON.parse(localStorage.getItem('pokemmo_captured')) || [];
+
+        // Elementos del DOM
+        const regionButtonsContainer = document.getElementById('region-buttons');
+        const pokemonGrid = document.getElementById('pokemon-grid');
+        const activeRegionTitle = document.getElementById('active-region-title');
+        const regionCount = document.getElementById('region-count');
+        const globalProgress = document.getElementById('global-progress');
+        const searchBar = document.getElementById('search-bar');
+        const btnCalcRoute = document.getElementById('btn-calc-route');
+        const routeResult = document.getElementById('route-result');
+
+        // Inicializar botones de región
+        function initRegions() {
+            regionButtonsContainer.innerHTML = '';
+            regions.forEach(reg => {
+                const btn = document.createElement('button');
+                btn.textContent = reg;
+                btn.className = `px-3 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider border transition-all cursor-pointer ${
+                    currentRegion === reg 
+                    ? 'bg-red-500 border-red-500 text-gray-950 font-black shadow-lg shadow-red-500/20' 
+                    : 'bg-gray-950 border-gray-800 hover:border-gray-700 text-gray-400'
+                }`;
+                btn.onclick = () => {
+                    currentRegion = reg;
+                    initRegions();
+                    renderPokemon();
+                    routeResult.classList.add('hidden');
+                };
+                regionButtonsContainer.appendChild(btn);
+            });
+        }
+
+        // Renderizar las tarjetas de los Pokémon
+        function renderPokemon() {
+            const query = searchBar.value.toLowerCase();
+            pokemonGrid.innerHTML = '';
+            
+            activeRegionTitle.textContent = currentRegion;
+
+            // Filtrar por región y por búsqueda de texto
+            const filtered = pokemonDB.filter(p => p.region === currentRegion && p.name.toLowerCase().includes(query));
+            
+            // Contar faltantes de la región activa
+            const totalInRegion = pokemonDB.filter(p => p.region === currentRegion).length;
+            const capturedInRegion = pokemonDB.filter(p => p.region === currentRegion && capturedPokemon.includes(p.id)).length;
+            regionCount.textContent = `${totalInRegion - capturedInRegion} restantes`;
+
+            // Actualizar marcador de arriba
+            globalProgress.textContent = `${capturedPokemon.length} / ${pokemonDB.length}`;
+
+            if(filtered.length === 0) {
+                pokemonGrid.innerHTML = `<div class="col-span-full text-center text-sm py-8 text-gray-500">Ningún pokémon coincide.</div>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isCaptured = capturedPokemon.includes(p.id);
+                const card = document.createElement('div');
+                card.className = `pokemon-card bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col justify-between transition-all cursor-pointer select-none hover:border-gray-700 ${isCaptured ? 'captured' : ''}`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="text-xs font-mono text-gray-500 mb-1">#${String(p.id).padStart(3, '0')}</div>
+                        <div class="font-extrabold text-gray-200 text-base tracking-wide">${p.name}</div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-[10px] text-gray-400 bg-gray-950 px-2 py-0.5 rounded border border-gray-800 max-w-[70%] truncate" title="${p.locations.join(', ')}">
+                            ${p.locations[0]}${p.locations.length > 1 ? '...' : ''}
+  </span>
+      
