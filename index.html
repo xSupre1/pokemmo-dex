@@ -1,0 +1,590 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10141d">
+  <title>DexRoute — PokéMMO</title>
+  <style>
+    :root {
+      --bg: #10141d;
+      --panel: #191f2b;
+      --panel2: #222a39;
+      --text: #f3f6fc;
+      --muted: #9ba8bd;
+      --blue: #66a5ff;
+      --green: #66e2ad;
+      --border: #30394a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 0 24px;
+    }
+
+    .logo {
+      font-size: 23px;
+      font-weight: 900;
+      letter-spacing: -1px;
+    }
+
+    .logo span { color: var(--blue); }
+
+    .tag {
+      font-size: 11px;
+      color: var(--green);
+      border: 1px solid #326b58;
+      padding: 5px 9px;
+      border-radius: 20px;
+    }
+
+    .hero {
+      background: linear-gradient(130deg, #202f4b, #1a202d 70%);
+      border: 1px solid #344765;
+      border-radius: 22px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    h1 {
+      font-size: clamp(27px, 6vw, 40px);
+      line-height: 1.12;
+      margin: 10px 0;
+    }
+
+    p { line-height: 1.55; }
+
+    .muted { color: var(--muted); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .stat {
+      background: #111925a8;
+      padding: 14px;
+      border-radius: 13px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+    }
+
+    .stat small { color: var(--muted); }
+
+    .progress {
+      height: 7px;
+      background: #30394a;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .progress div {
+      height: 100%;
+      width: 0;
+      background: var(--green);
+      transition: width .2s;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 19px;
+      border-radius: 18px;
+      margin-bottom: 18px;
+    }
+
+    h2 { font-size: 19px; margin: 0 0 15px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      min-width: 0;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      outline-offset: 2px;
+    }
+
+    .region-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 15px 0;
+    }
+
+    .region-buttons button, .action {
+      color: var(--text);
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 12px;
+    }
+
+    .region-buttons button.active {
+      background: #244775;
+      border-color: var(--blue);
+      color: white;
+    }
+
+    .list-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin: 22px 0 12px;
+    }
+
+    .list-heading h2 { margin: 0; }
+
+    .pokemon-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .pokemon {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px;
+      min-width: 0;
+      transition: border-color .2s;
+    }
+
+    .pokemon.caught {
+      border-color: #34785d;
+      background: #172820;
+    }
+
+    .poke-icon {
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      width: 43px;
+      height: 43px;
+      border-radius: 12px;
+      background: var(--panel2);
+      font-size: 23px;
+    }
+
+    .poke-info { min-width: 0; flex: 1; }
+
+    .poke-info strong {
+      display: block;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    .poke-info small {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .check {
+      width: 22px;
+      height: 22px;
+      accent-color: var(--green);
+      flex-shrink: 0;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 25px 5px;
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .action.primary {
+      background: #244775;
+      border-color: #416ba4;
+    }
+
+    .action.danger { color: #ffaaaa; }
+
+    .notice {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 14px;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 15px 0 30px;
+    }
+
+    @media (max-width: 520px) {
+      .container { padding: 13px; }
+      .hero { padding: 19px; }
+      .stats { gap: 7px; }
+      .stat { padding: 10px; }
+      .stat strong { font-size: 20px; }
+      .pokemon-list { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div class="logo">DEX<span>ROUTE</span></div>
+      <div class="tag">POKÉMMO PLANNER</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Tu aventura, organizada</div>
+      <h1>Completá tu Pokédex.<br>Una ruta a la vez.</h1>
+      <p class="muted">
+        Registrá tus capturas y preparate para completar
+        las cinco regiones de PokéMMO.
+      </p>
+
+      <div class="stats">
+        <div class="stat">
+          <strong id="total">0</strong>
+          <small>En esta demo</small>
+        </div>
+        <div class="stat">
+          <strong id="caught">0</strong>
+          <small>Capturados</small>
+        </div>
+        <div class="stat">
+          <strong id="percent">0%</strong>
+          <small>Progreso</small>
+        </div>
+      </div>
+      <div class="progress"><div id="bar"></div></div>
+    </section>
+
+    <section class="panel">
+      <h2>🔎 Tu Pokédex</h2>
+
+      <div class="filters">
+        <input id="search" type="search"
+          placeholder="Buscar Pokémon por nombre...">
+        <select id="status">
+          <option value="all">Todos los Pokémon</option>
+          <option value="missing">Me faltan</option>
+          <option value="caught">Ya capturados</option>
+        </select>
+      </div>
+
+      <div class="region-buttons" id="regions"></div>
+
+      <div class="list-heading">
+        <h2 id="listTitle">Pokémon</h2>
+        <span class="muted" id="shown">0 resultados</span>
+      </div>
+
+      <div class="pokemon-list" id="pokemonList"></div>
+
+      <p class="notice">
+        ⚠️ Versión inicial de prueba: la lista contiene ejemplos,
+        no la Pokédex completa de PokéMMO.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>💾 Tu progreso</h2>
+      <p class="muted">
+        Las capturas se guardan en este navegador. Podés exportar
+        una copia para transferirla a otro dispositivo.
+      </p>
+      <div class="actions">
+        <button class="action primary" id="exportBtn">
+          Exportar progreso
+        </button>
+        <button class="action" id="importBtn">
+          Importar progreso
+        </button>
+        <button class="action danger" id="resetBtn">
+          Reiniciar
+        </button>
+        <input id="importFile" type="file"
+          accept=".json,application/json" hidden>
+      </div>
+      <p class="notice" id="saveMessage" aria-live="polite">
+        Guardado local activado.
+      </p>
+    </section>
+
+    <footer>
+      DexRoute · Proyecto independiente para jugadores de PokéMMO
+    </footer>
+  </main>
+
+  <script>
+    const regions = [
+      "Todas", "Kanto", "Johto", "Hoenn", "Sinnoh", "Teselia"
+    ];
+
+    // Datos de ejemplo. Se ampliarán con datos verificados.
+    const pokemon = [
+      {id:1,name:"Bulbasaur",region:"Kanto",icon:"🌱"},
+      {id:4,name:"Charmander",region:"Kanto",icon:"🔥"},
+      {id:7,name:"Squirtle",region:"Kanto",icon:"💧"},
+      {id:25,name:"Pikachu",region:"Kanto",icon:"⚡"},
+      {id:133,name:"Eevee",region:"Kanto",icon:"🦊"},
+      {id:152,name:"Chikorita",region:"Johto",icon:"🍃"},
+      {id:155,name:"Cyndaquil",region:"Johto",icon:"🔥"},
+      {id:158,name:"Totodile",region:"Johto",icon:"💧"},
+      {id:172,name:"Pichu",region:"Johto",icon:"⚡"},
+      {id:252,name:"Treecko",region:"Hoenn",icon:"🌿"},
+      {id:255,name:"Torchic",region:"Hoenn",icon:"🔥"},
+      {id:258,name:"Mudkip",region:"Hoenn",icon:"💧"},
+      {id:387,name:"Turtwig",region:"Sinnoh",icon:"🌱"},
+      {id:390,name:"Chimchar",region:"Sinnoh",icon:"🔥"},
+      {id:393,name:"Piplup",region:"Sinnoh",icon:"💧"},
+      {id:495,name:"Snivy",region:"Teselia",icon:"🌿"},
+      {id:498,name:"Tepig",region:"Teselia",icon:"🔥"},
+      {id:501,name:"Oshawott",region:"Teselia",icon:"💧"}
+    ];
+
+    const STORAGE_KEY = "dexroute-caught-v1";
+    let selectedRegion = "Todas";
+    let caughtSet = new Set();
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      if (Array.isArray(saved)) {
+        caughtSet = new Set(
+          saved.filter(id => Number.isInteger(id) && id > 0)
+        );
+      }
+    } catch (error) {
+      console.warn("No se pudo leer el progreso guardado.", error);
+    }
+
+    const $ = id => document.getElementById(id);
+
+    function save() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify([...caughtSet])
+        );
+        $("saveMessage").textContent =
+          "✓ Progreso guardado en este navegador.";
+      } catch (error) {
+        $("saveMessage").textContent =
+          "No se pudo guardar. Exportá una copia de seguridad.";
+      }
+    }
+
+    function renderRegions() {
+      $("regions").innerHTML = "";
+      regions.forEach(region => {
+        const button = document.createElement("button");
+        button.textContent = region;
+        button.className =
+          selectedRegion === region ? "active" : "";
+        button.setAttribute("aria-pressed",
+          String(selectedRegion === region));
+        button.addEventListener("click", () => {
+          selectedRegion = region;
+          renderRegions();
+          renderPokemon();
+        });
+        $("regions").appendChild(button);
+      });
+    }
+
+    function renderPokemon() {
+      const query = $("search").value.trim().toLowerCase();
+      const status = $("status").value;
+
+      const filtered = pokemon.filter(p => {
+        const matchesRegion =
+          selectedRegion === "Todas" || p.region === selectedRegion;
+        const matchesSearch =
+          p.name.toLowerCase().includes(query) ||
+          String(p.id).includes(query);
+        const isCaught = caughtSet.has(p.id);
+        const matchesStatus =
+          status === "all" ||
+          (status === "caught" && isCaught) ||
+          (status === "missing" && !isCaught);
+
+        return matchesRegion && matchesSearch && matchesStatus;
+      });
+
+      $("pokemonList").innerHTML = "";
+      $("listTitle").textContent =
+        selectedRegion === "Todas" ? "Todas las regiones" : selectedRegion;
+      $("shown").textContent = filtered.length + " resultados";
+
+      if (!filtered.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No se encontraron Pokémon.";
+        $("pokemonList").appendChild(empty);
+      }
+
+      filtered.forEach(p => {
+        const isCaught = caughtSet.has(p.id);
+        const card = document.createElement("label");
+        card.className = "pokemon" + (isCaught ? " caught" : "");
+
+        const icon = document.createElement("div");
+        icon.className = "poke-icon";
+        icon.textContent = p.icon;
+
+        const info = document.createElement("div");
+        info.className = "poke-info";
+        const name = document.createElement("strong");
+        name.textContent = p.name;
+        const detail = document.createElement("small");
+        detail.textContent =
+          "#" + String(p.id).padStart(3, "0") + " · " + p.region;
+        info.append(name, detail);
+
+        const check = document.createElement("input");
+        check.type = "checkbox";
+        check.className = "check";
+        check.checked = isCaught;
+        check.setAttribute("aria-label", "Capturé a " + p.name);
+
+        check.addEventListener("change", () => {
+          if (check.checked) caughtSet.add(p.id);
+          else caughtSet.delete(p.id);
+          save();
+          renderStats();
+          renderPokemon();
+        });
+
+        card.append(icon, info, check);
+        $("pokemonList").appendChild(card);
+      });
+    }
+
+    function renderStats() {
+      const count = pokemon.filter(p => caughtSet.has(p.id)).length;
+      const percent = pokemon.length
+        ? Math.round(count / pokemon.length * 100)
+        : 0;
+
+      $("total").textContent = pokemon.length;
+      $("caught").textContent = count;
+      $("percent").textContent = percent + "%";
+      $("bar").style.width = percent + "%";
+    }
+
+    $("search").addEventListener("input", renderPokemon);
+    $("status").addEventListener("change", renderPokemon);
+
+    $("exportBtn").addEventListener("click", () => {
+      const data = {
+        app: "DexRoute",
+        version: 1,
+        caught: [...caughtSet]
+      };
+      const blob = new Blob(
+        [JSON.stringify(data, null, 2)],
+        {type: "application/json"}
+      );
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dexroute-progreso.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      $("saveMessage").textContent = "Copia de progreso exportada.";
+    });
+
+    $("importBtn").addEventListener("click", () => {
+      $("importFile").click();
+    });
+
+    $("importFile").addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      try {
+        const data = JSON.parse(await file.text());
+        if (!data || data.app !== "DexRoute" ||
+            !Array.isArray(data.caught) ||
+            !data.caught.every(id =>
+              Number.isInteger(id) && id > 0)) {
+          throw new Error("Archivo no válido");
+        }
+
+        caughtSet = new Set(data.caught);
+        save();
+        renderStats();
+        renderPokemon();
+        $("saveMessage").textContent = "Progreso importado correctamente.";
+      } catch (error) {
+        $("saveMessage").textContent =
+          "No se pudo importar. Revisá que sea un archivo de DexRoute.";
+      }
+      event.target.value = "";
+    });
+
+    $("resetBtn").addEventListener("click", () => {
+      if (!confirm("¿Querés borrar todas las capturas guardadas?")) return;
+      caughtSet.clear();
+      save();
+      renderStats();
+      renderPokemon();
+    });
+
+    renderRegions();
+    renderStats();
+    renderPokemon();
+  </script>
+</body>
+</html>
